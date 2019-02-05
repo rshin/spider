@@ -7,10 +7,10 @@ from process_sql import get_sql
 
 
 #TODO: update the following dirs
-sql_path = 'spider/train.json'
-db_dir = 'database/'
-output_file = 'dev_new.json'
-table_file = 'spider/tables.json'
+#sql_path = 'spider/train.json'
+#db_dir = 'database/'
+#output_file = 'train_new.json'
+#table_file = 'spider/tables.json'
 
 
 class Schema:
@@ -72,26 +72,36 @@ def get_schemas_from_json(fpath):
     return schemas, db_names, tables
 
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', required=True)
+    parser.add_argument('--tables', required=True)
+    parser.add_argument('--output', required=True)
+    args = parser.parse_args()
 
-schemas, db_names, tables = get_schemas_from_json(table_file)
+    sql_path = args.input
+    output_file = args.output
+    table_file = args.tables
 
-with open(sql_path) as inf:
-    sql_data = json.load(inf)
+    schemas, db_names, tables = get_schemas_from_json(table_file)
 
-sql_data_new = []
-for data in sql_data:
-    try:
-        db_id = data["db_id"]
-        schema = schemas[db_id]
-        table = tables[db_id]
-        schema = Schema(schema, table)
-        sql = data["query"]
-        sql_label = get_sql(schema, sql)
-        data["sql"] = sql_label
-        sql_data_new.append(data)
-    except:
-        print("db_id: ", db_id)
-        print("sql: ", sql)
-        
-with open(output_file, 'wt') as out:
-    json.dump(sql_data_new, out, sort_keys=True, indent=4, separators=(',', ': '))
+    with open(sql_path) as inf:
+        sql_data = json.load(inf)
+
+    sql_data_new = []
+    for data in sql_data:
+        try:
+            db_id = data["db_id"]
+            schema = schemas[db_id]
+            table = tables[db_id]
+            schema = Schema(schema, table)
+            sql = data["query"]
+            sql_label = get_sql(schema, sql)
+            data["sql"] = sql_label
+            sql_data_new.append(data)
+        except:
+            print("db_id: ", db_id)
+            print("sql: ", sql)
+    
+    with open(output_file, 'wt') as out:
+        json.dump(sql_data_new, out, sort_keys=True, indent=4, separators=(',', ': '))
